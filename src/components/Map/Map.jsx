@@ -3,29 +3,31 @@ import GoogleMapReact from 'google-map-react'
 import { Paper, Typography, useMediaQuery } from '@material-ui/core'
 import LocationOnOutlinedIcon from '@material-ui/icons/LocationOnOutlined'
 import Rating from '@material-ui/lab/Rating'
+
 import useStyles from './styles'
+import mapStyles from '../../mapStyles.js'
 
-
-const Map = ({ coords, setCoords, setBounds, places }) => {
+const Map = ({ coords, places, setCoords, setBounds, setChildClicked, weatherData }) => {
+  console.log('Map - places: ', places);
   const classes = useStyles()
   const matches = useMediaQuery('(min-width: 600px)')
 
   return (
     <div className={classes.mapContainer}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: 'AIzaSyDzj-jPbkBuTJAbiGavY8FXVgeNgyap-ys' }}
+        bootstrapURLKeys={{ key: process.env.REACT_APP_GOOGLE_MAP_API_KEY }}
         defaultCenter={coords}
         center={coords}
         defaultZoom={14}
         margin={[50, 50, 50, 50]}
-        options={''}
+        options={{ disableDefaultUI: true, zoomControl: true, styles: mapStyles }}
         onChange={(e) => {
           setCoords({ lat: e.center.lat, lng: e.center.lng })
           setBounds({ ne: e.marginBounds.ne, sw: e.marginBounds.sw })
         }}
-        onChildClick={''}
+        onChildClick={(child) => { setChildClicked(child) }}
       >
-        {places.length && places.map((place, i) => (
+        {places?.length && places.map((place, i) => (
           <div
             className={classes.markerContainer}
             lat={Number(place.latitude)}
@@ -44,6 +46,15 @@ const Map = ({ coords, setCoords, setBounds, places }) => {
                   <Rating name="read-only" size="small" value={Number(place.rating)} readOnly />
                 </Paper>
               )}
+          </div>
+        ))}
+        {weatherData?.list?.length && weatherData.list.map((data, i) => (
+          <div
+            lat={Number(data.coord.lat)}
+            lng={Number(data.coord.lon)}
+            key={i}
+          >
+            <img src={`https://openweathermap.org/img/w/${data.weather[0].icon}.png`} height="70px" alt={data.name} />
           </div>
         ))}
       </GoogleMapReact>
